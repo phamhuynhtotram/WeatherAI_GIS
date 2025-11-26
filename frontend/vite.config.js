@@ -3,17 +3,18 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  base: './', 
-  
+  base: './',
+
   build: {
-    assetsInlineLimit: 4096, 
-    rollupOptions: {
-      external: [/^leaflet\/dist\/images\//],
-    },
+    assetsInlineLimit: 4096,
   },
   
   optimizeDeps: {
     include: ['react-leaflet', 'leaflet'],
-    exclude: ['react-leaflet'], 
+    esbuildOptions: {
+      loader: {
+        '.js': 'jsx', 
+      },
+    },
   },
 });

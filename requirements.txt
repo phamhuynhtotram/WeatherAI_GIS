@@ -1,14 +1,20 @@
-# Web Server và Framework
+# Server và Framework Web
 fastapi
 uvicorn
 gunicorn
-httpx
 
-# Thư viện AI/Data Science
-# Vui lòng thay thế bằng phiên bản chính xác nếu bạn nhớ
+# Thư viện AI/Data Science Bắt buộc
 tensorflow
 numpy
-pandas 
+pandas
+joblib # Vừa lỗi ở bước trước
 
-# Nếu bạn dùng các thư viện khác (ví dụ: scikit-learn, openpyxl, etc.)
-# Vui lòng thêm chúng vào đây.
+# Thư viện mạng/API cần thiết (Giải quyết lỗi tiềm ẩn)
+httpx # Vừa lỗi ở bước trước
+requests
+
+# Các thư viện GIS/Data có khả năng dùng
+# Nếu bạn có các thư viện này, hãy thêm vào. Nếu không, hãy bỏ qua.
+scikit-learn
+matplotlib
+geopy

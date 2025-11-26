@@ -2,6 +2,8 @@
 # File: main.py
 
 # --- 1. IMPORT CÁC THƯ VIỆN CẦN THIẾT ---
+from flask import Flask
+from flask_cors import CORS
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware 
 from starlette.concurrency import run_in_threadpool
@@ -14,6 +16,12 @@ import pandas as pd
 from tensorflow.keras.models import load_model
 from dotenv import load_dotenv 
 import os 
+
+app = Flask(__name__)
+
+# Cấu hình CORS sau khi khởi tạo app
+FRONTEND_URL = "https://weather-ai-frontend.onrender.com"
+CORS(app, resources={r"/*": {"origins": FRONTEND_URL}})
 
 print("--- Khởi động Backend Server ---")
 

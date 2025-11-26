@@ -3,7 +3,7 @@ import React from "react";
 
 // Hằng số API
 export const OWM_API_KEY = "5847b5e134ec403837dec63690809a97"; 
-export const BACKEND_URL = "https://weather-ai-gis.onrender.com";
+export const BACKEND_URL = "https://weatherai-gis.onrender.com";
 
 // --- DỮ LIỆU VÀ HÀM LOGIC ---
 

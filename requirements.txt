@@ -8,6 +8,7 @@ tensorflow
 numpy
 pandas
 joblib # Vừa lỗi ở bước trước
+python-dotenv
 
 # Thư viện mạng/API cần thiết (Giải quyết lỗi tiềm ẩn)
 httpx # Vừa lỗi ở bước trước

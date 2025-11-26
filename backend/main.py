@@ -28,7 +28,7 @@ API_KEY = os.getenv("OPENWEATHER_API_KEY")
 app = FastAPI()
 
 # URL Frontend đã triển khai trên Render
-FRONTEND_URL = "https://weather-ai-gis.onrender.com"
+FRONTEND_URL = "https://weather-ai-frontend.onrender.com"
 
 app.add_middleware(
     CORSMiddleware,
@@ -86,7 +86,7 @@ origins = [
     "http://127.0.0.1:3000",
     "http://localhost:5173", 
     "http://127.0.0.1:5173",
-    "https://weather-ai-gis.onrender.com" 
+    "https://weather-ai-frontend.onrender.com" 
 ]
 
 app.add_middleware(

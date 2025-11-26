@@ -1,16 +1,20 @@
-// file: vite.config.js 
 import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+    import react from '@vitejs/plugin-react';
 
-export default defineConfig({
-  plugins: [react()],
-  base: './',
+    export default defineConfig({
+      plugins: [react()],
+      base: '/', 
 
-  build: {
-    assetsInlineLimit: 4096,
-  },
-  
-  optimizeDeps: {
-    include: ['react-leaflet', 'leaflet'], 
-  },
-});
+      build: {
+        assetsInlineLimit: 4096,
+      },
+      
+      optimizeDeps: {
+        include: ['react-leaflet', 'leaflet'],
+        esbuildOptions: {
+          loader: {
+            '.js': 'jsx', 
+          },
+        },
+      },
+    });

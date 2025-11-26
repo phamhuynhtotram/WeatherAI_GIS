@@ -1,0 +1,13 @@
+# Web Server và Framework
+fastapi
+uvicorn
+gunicorn
+
+# Thư viện AI/Data Science
+# Vui lòng thay thế bằng phiên bản chính xác nếu bạn nhớ
+tensorflow
+numpy
+pandas 
+
+# Nếu bạn dùng các thư viện khác (ví dụ: scikit-learn, openpyxl, etc.)
+# Vui lòng thêm chúng vào đây.

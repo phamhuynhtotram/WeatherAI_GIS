@@ -2,6 +2,7 @@
 fastapi
 uvicorn
 gunicorn
+httpx
 
 # Thư viện AI/Data Science
 # Vui lòng thay thế bằng phiên bản chính xác nếu bạn nhớ

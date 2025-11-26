@@ -1,0 +1,793 @@
+/* ====================================================== */
+/* 1. BASE STYLES & HEADER */
+/* ====================================================== */
+@import url('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
+
+body {
+    margin: 0;
+    font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #1a1a2e;
+    color: #e0e0e0;
+}
+.full-page-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #1a1a2e; }
+::-webkit-scrollbar-thumb { background: #4a5c80; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #5c7099; }
+
+/* HEADER AND NAV */
+.app-header {  background-color: #2b3a58; padding: 10px 30px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); }
+.top-bar { display: flex; justify-content: space-between; font-size: 1em; color: #c1def7; margin-bottom: 10px; border-bottom: 1px solid #555; flex-shrink: 0; }
+.main-nav { display: flex; align-items: center; justify-content: space-between; }
+.header-search-bar { display: flex; border-radius: 8px; overflow: hidden; background-color: #1a1a2e; max-width: 400px; flex-grow: 1; margin: 0 20px; }
+.header-search-bar input { border: none; padding: 10px 15px; background: transparent; color: white; outline: none; flex-grow: 1; }
+.header-search-bar button { background: #6580cc; border: none; padding: 10px 15px; cursor: pointer; color: white; transition: background 0.2s; }
+.main-title-bar { padding: 20px 30px 10px; color: white; }
+.main-title-bar h2 { margin: 0; font-size: 2em; font-weight: 700; }
+.error-box-inline { background-color: #ff4d4d; color: white; padding: 5px 10px; border-radius: 5px; margin-top: 10px; font-size: 0.9em; pointer-events: none; }
+.map-overlay { pointer-events: none; }  
+
+/* TỈNH - THÀNH PHỐ */
+/* Container chính chứa các cột */
+.province-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 30px 20px; 
+    padding: 20px;
+    max-height: 80vh; 
+    overflow-y: auto; 
+}
+/* Container cho từng vùng miền */
+.region-column {
+    /* Đảm bảo tiêu đề và danh sách không bị dính */
+    padding-bottom: 15px; 
+}
+/* Tiêu đề vùng miền */
+.region-column h4 {
+    color: #FFC107; /* Màu nổi bật */
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 5px;
+}
+/* Danh sách tỉnh/thành phố */
+.region-column ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+/* Từng mục tỉnh/thành phố */
+.region-column li {
+    padding: 4px 0;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 0.95em;
+    color: #99aab5;
+}
+.region-column li:hover {
+    color: #FFFFFF; 
+    background-color: #5d78c0; 
+    padding-left: 5px; 
+}
+/* Thiết lập kiểu cơ sở và chuyển đổi mượt */
+.nav-button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    background-color: #4d6198; 
+    color: white; 
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+/* Nút khi di chuột qua */
+.nav-button:hover {
+    background-color: #da6c7e80;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
+}
+
+/* ====================================================== */
+/* 2. WIDGET CHUNG (Glassmorphism) */
+/* ====================================================== */
+.widget {
+    background: rgba(255, 255, 255, 0.05); 
+    border-radius: 15px;
+    padding: 20px; /* Đã tăng padding để khớp với Main Widget */
+    backdrop-filter: blur(10px); 
+    border: 1px solid rgba(255, 255, 255, 0.2); 
+    box-shadow: 0 10px 40px 0 rgba(0, 0, 0, 0.4); 
+    transition: transform 0.2s;
+    min-height: 0; 
+}
+.widget:hover { transform: translateY(-3px); }
+h3 { margin-top: 0; color: #cccccc; font-size: 1.1em; font-weight: 500; }
+.stat-widget .stat-value-small { font-size: 1.6em; } 
+
+/* ====================================================== */
+/* 3. BỐ CỤC GRID CHÍNH (3 CỘT & CÂN BẰNG) */
+/* ====================================================== */
+.main-grid { grid-template-columns: 1.5fr 1.2fr 1.5fr; grid-template-rows: minmax(100px, auto) 1fr auto auto auto; gap: 20px; padding: 20px 30px; display: grid; flex-grow: 1; }
+/* --- CỘT 2 (CENTER COLUMN - Widget Chính) --- */
+.grid-col-center { grid-column: 2 / span 1; grid-row: 1 / span 2; display: flex; }
+.main-weather-widget { 
+    min-height: 400px; 
+    flex-grow: 1; 
+    background: linear-gradient(145deg, #2b3a58, #1a1a2e);
+    border: 1px solid #4a5c80;
+} 
+/* Sắp xếp dọc và căn giữa (Theo yêu cầu mới nhất) */
+.main-weather-content {
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: top; 
+    height: 100%; 
+    padding-top: 5px;
+    text-align: center;
+}
+.main-weather-content .temp-icon { width: 200px; height: 200px; margin-bottom: 10px; }
+.main-weather-content .main-temp { font-size: 5em; font-weight: 700; line-height: 1; margin-top: -10px; }
+.main-weather-content .main-time, .main-weather-content .main-desc { display: block; font-size: 20px; color: #cccccc; margin-top: 5px; }
+.main-weather-content .main-feels-like { display: block; font-size: 20px; color: #99aab5; margin-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 10px; }
+/* --- CỘT 1 (LEFT COLUMN - Metrics chi tiết) --- */
+.grid-col-left { grid-column: 1 / span 1; grid-row: 1 / span 2; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr auto auto; gap: 10px; }
+
+/* BIỂU ĐỒ NHIỆT / ẨM */
+.line-chart-widget {
+    min-width: 0;
+    overflow: hidden;
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+/* Tiêu đề Widget */
+.line-chart-widget h3 {
+    text-align: left;
+    margin-left: 20px;
+    margin-bottom: 10px;
+}
+/* Legend ở phía trên */
+.chart-legend-top {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+    margin-bottom: 15px;
+    font-size: 0.9em;
+    color: #c6c6c6;
+}
+.legend-item {
+    display: flex;
+    align-items: center;
+}
+.legend-line {
+    display: inline-block;
+    width: 20px;
+    height: 3px;
+    border-radius: 2px;
+    margin-right: 8px;
+    background-color: #4A90E2; 
+}
+.legend-bar {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    border-radius: 3px;
+    margin-right: 8px;
+    background-color: rgba(255, 192, 203, 0.5); /* Màu hồng của cột */
+}
+/* Container cuộn */
+.line-chart-widget .chart-container {
+    width: 100%; 
+    overflow-x: auto;
+    padding-bottom: 30px; 
+}
+
+/* Hàng 1: Gió (Trải dài) */
+.wind-stats-container { grid-column: 1 / span 2; grid-row: 1 / span 1; display: flex; }
+.stat-wind { flex-grow: 1;width: 100%; }
+/* Hàng 2: Biểu đồ AI (Trải dài) */
+.line-chart-ai { grid-column: 1 / span 2; grid-row: 2 / span 1; }
+/* Hàng 3: Bình minh / Hoàng hôn */
+.stat-sunrise { grid-column: 1 / span 1; grid-row: 3 / span 1; }
+.stat-sunset { grid-column: 2 / span 1; grid-row: 3 / span 1; }
+
+/* --- CỘT 3 (RIGHT COLUMN - Stats & Charts) --- */
+.grid-col-right { grid-column: 3 / span 1; grid-row: 1 / span 2; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto 1fr; gap: 10px; }
+/* Stats 2x2 */
+.stat-low-high { grid-column: 1 / span 1; grid-row: 1 / span 1; }
+.stat-humidity { grid-column: 2 / span 1; grid-row: 1 / span 1; }
+.stat-visibility { grid-column: 1 / span 1; grid-row: 2 / span 1; }
+.stat-rain-prob { grid-column: 2 / span 1; grid-row: 2 / span 1; }
+
+/* Biểu đồ Lượng mưa */
+.precip-chart { 
+    grid-column: 1 / span 2; 
+    grid-row: 3 / span 1; 
+}
+.grid-label {
+    position: absolute;
+    left: -40px; 
+    top: -8px; 
+    font-size: 0.75em;
+    color: rgba(255, 255, 255, 0.5);
+    width: 30px; 
+    text-align: right;
+}
+
+/* --- HÀNG DÀI (ROWS 3, 4, 5) --- */
+.gis-map-row { grid-column: 1 / span 3; grid-row: 3 / span 1; } 
+.forecast-widget-main { grid-column: 1 / span 3; grid-row: 4 / span 1; } 
+.daily-forecast-widget { grid-column: 1 / span 3; grid-row: 5 / span 1; } 
+
+/* ====================================================== */
+/* 4. HOURLY FORECAST (THẺ CUỘN NGANG) - THEME MÀU XANH & CẤU TRÚC MẪU */
+/* ====================================================== */
+/* Container biểu đồ - Cần không gian cho Label Trục Y */
+.precip-bar-chart-container {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end; 
+    height: 150px; 
+    padding-top: 20px;
+    position: relative;
+    padding-left: 35px; 
+    padding-right: 5px;
+}
+/* Wrapper cho các đường lưới */
+.chart-grid-lines {
+    position: absolute;
+    top: 0;
+    left: 35px; 
+    width: calc(100% - 35px); /* Điều chỉnh chiều rộng lưới */
+    height: 150px; 
+    pointer-events: none; 
+}
+/* Định dạng từng đường lưới */
+.grid-line {
+    position: absolute;
+    width: 100%;
+    border-bottom: 1px dashed rgba(227, 226, 226, 0.15); /* Làm rõ hơn */
+}
+/* Label giá trị trên lưới (0.5, 1.0, ...) - Trục Y */
+.grid-label {
+    position: absolute;
+    top: -8px; 
+    font-size: 0.75em; 
+    color: #99aab5; 
+}
+/* Thanh bar */
+.precip-bar { 
+    width: 25px;
+    background: linear-gradient(to top, #1F75FE, #4A90E2); 
+    box-shadow: 0 0 5px rgba(31, 117, 254, 0.5); 
+}
+.precip-value-label {
+    top: -18px; 
+    color: #FFC107; 
+}
+.precip-chart-widget h3 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.precip-legend {
+    display: flex;
+    align-items: center;
+    font-size: 0.8em;
+    color: #99aab5;
+    margin-top: 10px;
+    padding-left: 35px; 
+}
+.precip-legend span {
+    display: inline-block;
+    width: 15px;
+    height: 10px;
+    background-color: #4A90E2;
+    margin-right: 5px;
+    border-radius: 3px;
+}
+/*-------------------*/
+
+.precip-column-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+    position: relative;
+    width: 12%; 
+}
+.precip-bar {
+    width: 100%;
+    background-color: #4A90E2; 
+    transition: height 0.3s ease;
+    border-radius: 4px 4px 0 0;
+    position: relative;
+    display: flex;
+    justify-content: center;
+}
+.precip-value-label {
+    position: absolute;
+    top: -15px;
+    font-size: 0.7em;
+    color: #4A90E2;
+}
+.precip-label {
+    font-size: 0.75em;
+    margin-top: 5px;
+    color: #99aab5;
+}
+
+/* 24 GIỜ CHI TIẾT */
+.full-details-wrapper {
+    padding: 20px 40px; 
+}
+.page-title {
+    margin-bottom: 20px;
+    font-size: 2em;
+    color: white;
+    text-align: center;
+}
+/* Container có Khung (Chỉ bao Bảng) */
+.hourly-details-container.widget {
+    background-color: #2a344a; 
+    border-radius: 10px; 
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    padding: 15px; 
+    max-width: 900px; 
+    margin: 0 auto; 
+}
+/* Tinh chỉnh Padding của ô (Gọn hơn) */
+.hourly-details-table th, .hourly-details-table td {
+    padding: 6px 10px; 
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1); 
+    font-size: 0.9em; 
+    color: #99aab5;
+}
+/* Loại bỏ đường viền kép */
+.hourly-details-table {
+    width: 100%;
+    border-collapse: collapse; 
+    text-align: left;
+}
+/* Đường phân cách mờ */
+.hourly-details-table th, .hourly-details-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1); 
+    font-size: 0.9em;
+    color: #99aab5;
+}
+/* Màu tiêu đề cột */
+.hourly-details-table th {
+    color: #FFC107; 
+    font-size: 0.95em;
+    padding-top: 0;
+}
+/* Hiệu ứng khi di chuột */
+.hourly-detail-row:hover {
+    background-color: rgba(74, 144, 226, 0.1); 
+}
+/* Căn chỉnh cột Icon/Temp */
+.hourly-details-table .temp-value {
+    display: flex;
+    align-items: center;
+    color: white;
+    font-weight: 500;
+}
+/* Nút Quay lại */
+.back-button {
+    display: inline-flex; 
+    align-items: center;
+    padding: 8px 12px; 
+    margin-bottom: 20px;
+    cursor: pointer;
+    border: none;
+    border-radius: 6px;
+    background-color: #da6c7e80; 
+    color: white; 
+    font-size: 1em;
+    font-weight: 500;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+/* Hiệu ứng khi di chuột qua */
+.back-button:hover {
+    background-color: #4d6198; 
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+/* Hiệu ứng khi nhấn */
+.back-button:active {
+    transform: scale(0.98); 
+}
+/*--------------------*/
+
+/* 7 NGÀY */
+.daily-forecast-cards {
+    grid-column: 1 / -1; 
+    padding: 15px;
+}
+.daily-forecast-cards {
+    /* Đảm bảo widget chiếm toàn bộ chiều rộng hàng trong main-grid */
+    grid-column: 1 / -1; 
+    padding: 15px;
+}
+/* Wrapper để xử lý cuộn ngang */
+.daily-scroll-wrapper {
+    display: flex;
+    justify-content: center;
+    overflow-x: auto; 
+    overflow-y: hidden;
+    -ms-overflow-style: none;  
+    scrollbar-width: none;
+    padding-bottom: 10px; 
+    -ms-overflow-style: none; 
+    scrollbar-width: none; 
+    margin: 0 auto;
+    width: 100%; 
+}
+/* Ẩn thanh cuộn cho Webkit (Chrome, Safari) */
+.daily-scroll-wrapper::-webkit-scrollbar {
+    display: none;
+}
+/* Thiết kế nút Cuộn */
+.scroll-btn {
+    position: absolute;
+    top: 50%; 
+    transform: translateY(-50%);
+    background-color: #5f8dc2; 
+    border: none;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    cursor: pointer;
+    color: white;
+    z-index: 20; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    transition: background-color 0.2s;
+}
+.scroll-btn:hover {
+    background-color: #da6c7e80; 
+}
+/* Vị trí nút Trái */
+.scroll-btn.left {
+    left: 0;
+}
+/* Vị trí nút Phải */
+.scroll-btn.right {
+    right: 0;
+    margin-right: -15px;
+}
+/* Container chứa các thẻ */
+.daily-cards-container {
+    display: flex;
+    gap: 15px; 
+    flex-wrap: nowrap;
+    min-width: 1280px;
+    padding-top: 10px;
+    padding-bottom: 5px;
+}
+/* Định dạng từng thẻ */
+.daily-card {
+    width: 170px; 
+    padding: 25px 10px;
+    height: 240px;
+    background-color: #2e3b5e; 
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between; 
+    height: 220px; 
+    color: white;
+}
+/* Định dạng nội dung thẻ */
+.daily-date { 
+    font-size: 1em;
+    color: #c0c0c0;
+    margin: 0;
+    order: 1;
+}
+.daily-temps {
+    font-size: 1.15em; 
+    font-weight: bold;
+    color: white; 
+    margin-top: auto; 
+    order: 5;
+}
+/* Khả năng mưa (%) */
+.daily-prob-precip { 
+    color: #4A90E2; 
+    font-weight: bold;
+    font-size: 1em;
+    margin: 5px 0 15px 0; 
+    order: 2;
+}
+.daily-desc { /* Mô tả */
+    font-size: 1.1em;
+    font-weight: 500;
+    margin-bottom: 10px; 
+    overflow-wrap: break-word; 
+    text-align: center; 
+    width: 90%;
+}
+.daily-icon {
+    width: 70px; 
+    height: 70px;
+    margin-top: 15px; 
+    margin-bottom: 5px; 
+    order: 3;
+}
+/* Container Mô tả và Icon */
+.daily-weather-info { 
+    display: flex;
+    flex-direction: column; 
+    align-items: center;
+    width: 100%; 
+}
+/* Container mới chứa cả thẻ và nút */
+.daily-scroll-container {
+    position: relative; 
+    display: flex;
+    align-items: center;
+    padding: 0 5px; 
+}
+
+/* ====================================================== */
+/* 5. HOURLY FORECAST */
+/* ====================================================== */
+/* CSS quan trọng để MapContainer hiển thị */
+.gis-map-widget {
+    height: 450px;
+}
+.leaflet-map-wrapper {
+    height: calc(100% - 50px); 
+    width: 100%;
+    border-radius: 10px;
+    overflow: hidden;
+}
+.leaflet-container {
+    height: 100%;
+    width: 100%;
+    pointer-events: auto !important;
+}
+
+.leaflet-default-icon-path {
+    background-image: url('leaflet/dist/images/marker-icon.png');
+}
+.hourly-forecast-widget {
+    padding: 20px;
+    background: #3957a0; 
+    border: 1px solid #5d78c0;
+    display: flex; 
+    flex-direction: column;
+    overflow: hidden; /* Quan trọng: Ngăn nội dung con tràn ra ngoài widget */
+    grid-column: 1 / span 3 !important;
+    grid-row: 4 / span 1; 
+}
+.hourly-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    flex-shrink: 0; 
+}
+.hourly-header h2 {
+    color: white; 
+    font-size: 1.5em; 
+    font-weight: 500;
+}
+.hourly-nav-button { 
+    background: #5d78c0; 
+    color: white; 
+    border: 1px solid white; 
+    padding: 8px 15px; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    font-size: 0.9em; 
+    transition: background 0.2s; 
+    margin-left: 5px;
+}
+.hourly-nav-button:hover {
+    background: #da6c7e80;
+}
+.hourly-forecast-container {
+    display: flex;
+    overflow-x: auto;
+    gap: 15px;
+    margin-left: -20px;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+    width: auto;
+    box-sizing: border-box;
+    overflow-x: hidden; 
+    scroll-behavior: smooth; 
+}
+.hourly-forecast-wrapper {
+  position: relative; 
+  margin-left: 20px;
+}
+/* Nút mũi tên */
+.scroll-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #2f4f7f;      
+  border: none;
+  color: #cbd5e1;          
+  cursor: pointer;
+  user-select: none;
+  z-index: 30;
+  box-shadow: 0 4px 15px rgba(47, 79, 127, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+.scroll-btn.left {
+  left: -8px;
+}
+.scroll-btn.right {
+  right: 8px;
+}
+.scroll-btn:hover {
+  background: #da6c7e80;
+  color: #ffffff;
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 6px 20px rgba(30, 55, 95, 0.9);
+}
+.hourly-card {
+    min-width: 150px; 
+    flex-shrink: 0; 
+    background: #4a68b0; 
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+    border: none; 
+    transition: transform 0.2s;
+    display: flex; 
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative; 
+    padding-top: 40px; 
+    margin-bottom: 10px;
+}
+.hourly-humidity { font-size: 0.9em; color: white; position: absolute; top: 15px; right: 15px; z-index: 10; }
+/* 1. Giờ (trên cùng, căn trái) */
+.hourly-time {
+    display: block; font-size: 1.1em; font-weight: 600; color: #fff;
+    position: absolute; top: 15px; left: 15px; text-align: left; 
+}
+/* 2. Độ ẩm (bên cạnh Giờ, căn phải) */
+.hourly-humidity { font-size: 0.9em; color: white; position: absolute; top: 15px; right: 15px; }
+/* 3. Icon và Mô tả (ở giữa) */
+.hourly-weather-info { display: flex; flex-direction: column; align-items: center; margin: 15px 0; }
+.hourly-icon { width: 60px; height: 60px; }
+.hourly-desc { font-size: 1em; color: white; min-height: 30px; margin-top: 5px; }
+/* 4. Nhiệt độ Min/Max (Dòng cuối cùng) */
+.hourly-temps {
+    display: flex; justify-content: center; align-items: baseline;
+    font-size: 1.4em; font-weight: 700; color: white; 
+    margin-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.3); padding-top: 10px;
+}
+.temp-min { color: white; font-weight: 600; margin-right: 5px; font-size: 1em; }
+.temp-max { color: white; font-size: 1em; }
+.hourly-temps::after { content: "°C"; font-size: 0.7em; margin-left: 5px; font-weight: 400; }
+
+/* FOOTER */
+/* Container Chính */
+.main-footer-container { 
+    background-color: #2b3a58; 
+    color: #c1def7; 
+    padding: 30px 50px 15px 50px; 
+    width: 100%;
+    box-sizing: border-box; 
+    border-top: 2px solid #2e3b5e;
+}
+/* Phần trên cùng */
+.footer-top-row {
+    display: flex;
+    justify-content: space-around; 
+    align-items: flex-start;
+    max-width: 800px; 
+    margin: 0 auto; 
+    padding-bottom: 25px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1); 
+    margin-bottom: 15px;
+}
+/* Định dạng chung cho cả hai cột */
+.ffooter-column, .footer-column {
+    flex: 0 0 45%; 
+    padding: 0 10px; 
+    min-width: 300px; 
+}
+.ffooter-column h3, .footer-column h3 {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: white; 
+    margin-bottom: 15px;
+    padding-bottom: 5px;
+    border-bottom: 2px solid #4A90E2; 
+}
+/* Chi tiết Contact */
+.contact-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px; 
+    font-size: 0.95em;
+    color: #99aab5;
+}
+.contact-item i {
+    margin-right: 12px;
+    width: 18px;
+    color: #da6c7eeb; 
+}
+/* List liên kết nhanh */
+.footer-column ul { list-style: none; padding: 0; margin: 0 0 15px 0; }
+.footer-column li { margin-bottom: 5px; font-size: 0.95em; color: #99aab5; }
+/* Icons Mạng xã hội */
+.social-right, .social-right-top {
+    display: flex; 
+    align-items: center;
+    gap: 15px;
+    font-size: 1.5em; 
+    margin-top: 15px;
+    color: #da6c7eeb;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.social-right a, .social-right-top a {
+    text-decoration: none;
+    color: #da6c7eeb;
+    display: inline-flex;
+}
+/* Phần dưới cùng */
+.footer-bottom-row {
+    display: flex;
+    flex-direction: column; 
+    justify-content: center;
+    align-items: center; 
+    padding: 10px 0 5px 0;
+}
+/* Dòng Copyright (Mục 1) */
+.copyright-left { text-align: center; font-size: 0.85em; color: #99aab5; margin-bottom: 5px; }
+/* DÒNG KHÓA LUẬN MỚI (Mục 2) - PHẦN CHÍNH */
+.thesis-center { text-align: center; font-size: 1.0em; font-weight: bold; color: #07daff; margin-bottom: 5px; }
+/*-----------------*/
+
+/* ====================================================== */
+/* 6. RESPONSIVE MOBILE */
+/* ====================================================== */
+@media (max-width: 1200px) {
+    .hourly-forecast-widget { grid-column: 1 / span 2 !important; grid-row: 4 / span 1; }
+    .main-grid { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto auto auto auto auto; gap: 15px; }
+    .grid-col-center { grid-column: 1 / span 1; grid-row: 1 / span 1; }
+    .grid-col-left { grid-column: 2 / span 1; grid-row: 1 / span 1; }
+    .grid-col-right { grid-column: 1 / span 2; grid-row: 2 / span 1; }
+    .gis-map-row { grid-column: 1 / span 2; grid-row: 3 / span 1; }
+    .forecast-widget-main { grid-column: 1 / span 2; grid-row: 4 / span 1; }
+    .daily-forecast-widget { grid-column: 1 / span 2; grid-row: 5 / span 1; }
+}
+@media (max-width: 768px) {
+    .main-grid { grid-template-columns: 1fr; }
+    .grid-col-left, .grid-col-center, .grid-col-right, .gis-map-row, .forecast-widget-main, .daily-forecast-widget { grid-column: 1 / span 1; grid-row: auto; }
+    .grid-col-left, .grid-col-right { grid-template-columns: 1fr; } /* Stack metrics */
+    .stat-low-high, .stat-visibility, .stat-humidity, .stat-rain-prob, .stat-pressure, .stat-sunrise, .stat-sunset { grid-column: 1 / span 1 !important; }
+    .wind-stats-container { flex-direction: column; }
+    .main-weather-widget { min-height: 250px; }
+}

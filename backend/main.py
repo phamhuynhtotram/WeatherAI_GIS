@@ -50,7 +50,6 @@ API_KEY = os.getenv("OPENWEATHER_API_KEY")
 if not API_KEY:
     print("CẢNH BÁO: Không tìm thấy OPENWEATHER_API_KEY trong file .env")
 
-
 # --- TẢI MODEL VÀ SCALER ---
 BACKEND_ROOT = os.path.join(BASE_DIR, '..')
 DATA_DIR = os.path.join(BACKEND_ROOT, 'data') 

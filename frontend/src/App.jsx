@@ -634,15 +634,21 @@ function App() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [showHourlyDetails, setShowHourlyDetails] = useState(false);
 
+    // HÀM LỌC URL TRƯỚC KHI GỌI AXIOS (TRIỆT ĐỂ)
+    const normalizeApiUrl = (endpoint) => {
+        const correctedBaseUrl = "https://weatherai-gis.onrender.com"; 
+        return `${correctedBaseUrl}${endpoint}`;
+    };
+
     const fetchAllData = useCallback(async () => {
         if (typeof location.lat !== 'number' || typeof location.lon !== 'number') return;
         setWeatherData({ current: null, predict: null, daily: null });
         setError(null);
         const apiParams = { lat: location.lat, lon: location.lon };
         const results = await Promise.allSettled([
-            axios.get(`${BACKEND_URL}/weather/current`, { params: apiParams }),
-            axios.get(`${BACKEND_URL}/predict`, { params: apiParams }),
-            axios.get(`${BACKEND_URL}/weather/daily`, { params: apiParams }),
+            axios.get(normalizeApiUrl('/weather/current'), { params: apiParams }),
+            axios.get(normalizeApiUrl('/predict'), { params: apiParams }),
+            axios.get(normalizeApiUrl('/weather/daily'), { params: apiParams }),
         ]);
 
         setWeatherData({
@@ -668,7 +674,7 @@ function App() {
             return; 
         }
         try {
-            const geoUrl = `${BACKEND_URL}/geocode`;
+            const geoUrl = normalizeApiUrl('/geocode');
             const response = await axios.get(geoUrl, { params: { city: searchQuery } });
             if (!response.data || !response.data.lat) { setError(`Không tìm thấy thành phố: ${searchQuery}`); } 
             else { setCityName(response.data.name); setLocation({ lat: response.data.lat, lon: response.data.lon }); }

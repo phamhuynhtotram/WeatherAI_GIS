@@ -5,6 +5,8 @@ import React from "react";
 export const OWM_API_KEY = "5847b5e134ec403837dec63690809a97"; 
 export const BACKEND_URL = "https://weatherai-gis.onrender.com";
 
+export const FINAL_URL_CHECK = true;
+
 // --- DỮ LIỆU VÀ HÀM LOGIC ---
 
 export const VIETNAM_LOCATIONS = {

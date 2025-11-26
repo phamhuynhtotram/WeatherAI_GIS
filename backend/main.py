@@ -193,7 +193,7 @@ async def get_prediction(lat: float, lon: float):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Lỗi server khi dự báo: {e}")
 
-@app.get("/api/weather/daily")
+@api_router.get("/weather/daily")
 async def get_daily_forecast(lat: float, lon: float):
     if not API_KEY:
         raise HTTPException(status_code=500, detail="API key của OWM chưa được cấu hình")
@@ -206,7 +206,7 @@ async def get_daily_forecast(lat: float, lon: float):
     except Exception as e:
         raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
 
-@app.get("/api/geocode")
+@api_router.get("/geocode")
 async def get_geocode(city: str):
     if not API_KEY:
         raise HTTPException(status_code=500, detail="API key của OWM chưa được cấu hình")

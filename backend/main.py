@@ -2,12 +2,7 @@
 # File: main.py
 
 # --- 1. IMPORT CÁC THƯ VIỆN CẦN THIẾT ---
-from flask import Flask
-from flask_cors import CORS
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware 
-from starlette.concurrency import run_in_threadpool
-from fastapi.routing import APIRouter 
+import os
 import uvicorn
 import httpx 
 import joblib 
@@ -15,15 +10,33 @@ import numpy as np
 import pandas as pd
 from tensorflow.keras.models import load_model
 from dotenv import load_dotenv 
-import os 
-
-app = Flask(__name__)
-
-# Cấu hình CORS sau khi khởi tạo app
-FRONTEND_URL = "https://weather-ai-frontend.onrender.com"
-CORS(app, resources={r"/*": {"origins": FRONTEND_URL}})
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware 
+from starlette.concurrency import run_in_threadpool
+from fastapi.routing import APIRouter
 
 print("--- Khởi động Backend Server ---")
+
+# Tự động tìm đường dẫn file
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DOTENV_PATH = os.path.join(BASE_DIR, '.env')
+load_dotenv(DOTENV_PATH)
+
+API_KEY = os.getenv("OPENWEATHER_API_KEY")
+
+# Khởi tạo ứng dụng FastAPI
+app = FastAPI()
+
+# URL Frontend đã triển khai trên Render
+FRONTEND_URL = "https://weather-ai-frontend.onrender.com"
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[FRONTEND_URL], 
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Tự động tìm đường dẫn file
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -64,14 +77,16 @@ NUM_FEATURES = 4
 
 # --- 3. KHỞI TẠO ỨNG DỤNG FASTAPI & ROUTER ---
 app = FastAPI()
-api_router = APIRouter(prefix="/api") 
+api_router = APIRouter()
 
 origins = [
+    # Môi trường Phát triển cục bộ
     "http://localhost",
     "http://localhost:3000", 
     "http://127.0.0.1:3000",
     "http://localhost:5173", 
     "http://127.0.0.1:5173",
+    "https://weather-ai-frontend.onrender.com" 
 ]
 
 app.add_middleware(
@@ -92,9 +107,6 @@ async def root():
 
 @api_router.get("/weather/current") 
 async def get_current_weather(lat: float, lon: float): 
-    """
-    API 1: Lấy thời tiết HIỆN TẠI. Đã sửa để trả về các trường cần thiết.
-    """
     if not API_KEY:
         raise HTTPException(status_code=500, detail="API key của OWM chưa được cấu hình")
 

@@ -3,7 +3,7 @@ import axios from 'axios';
 import './App.css';
 import AppHeader from './Header.jsx';
 import { OWM_API_KEY, BACKEND_URL, VIETNAM_LOCATIONS } from './DataConfig.js';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import Footer, { FontAwesomeLoader } from './Footer.jsx';
